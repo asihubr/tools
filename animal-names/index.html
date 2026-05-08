@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Zvířátka / Animals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-1: #fff7e8;
+    --bg-2: #ffe5f1;
+    --ink: #2b2140;
+    --shadow: 0 10px 30px rgba(43, 33, 64, 0.18);
+    --shadow-sm: 0 4px 14px rgba(43, 33, 64, 0.14);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: "Fredoka", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 10% 0%, #ffd1e8 0%, transparent 40%),
+      radial-gradient(circle at 90% 10%, #cfe9ff 0%, transparent 45%),
+      radial-gradient(circle at 50% 100%, #fff3b0 0%, transparent 50%),
+      linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px clamp(10px, 2vw, 18px);
+  }
+  h1 {
+    font-size: clamp(18px, 3vw, 26px);
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 0 #fff;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .counter {
+    font-size: 14px;
+    font-weight: 600;
+    background: white;
+    border-radius: 999px;
+    padding: 6px 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    padding: 4px clamp(12px, 3vw, 24px) 24px;
+    gap: clamp(12px, 2.5vh, 28px);
+    min-height: 0;
+  }
+  .animal {
+    background: white;
+    border: none;
+    border-radius: 32px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    padding: clamp(10px, 2vh, 24px) clamp(20px, 4vw, 40px);
+    font-size: clamp(120px, 28vh, 240px);
+    line-height: 1;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  }
+  .animal:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(43, 33, 64, 0.22); }
+  .animal:active, .animal.tap { transform: scale(0.94); background: linear-gradient(135deg, #ffd1e8, #cfe9ff); }
+  .animal:focus-visible { outline: 3px solid #ffb86b; outline-offset: 4px; }
+  .hint {
+    font-size: 14px;
+    opacity: 0.65;
+    text-align: center;
+    margin: -8px 0 0;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 720px;
+    background: white;
+    border-radius: 22px;
+    padding: 14px clamp(14px, 2.5vw, 22px);
+    box-shadow: var(--shadow-sm);
+  }
+  .row .flag {
+    font-size: 28px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .row .name {
+    flex: 1;
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1.05;
+    text-align: center;
+    word-break: break-word;
+  }
+  .speak {
+    border: 0;
+    background: linear-gradient(135deg, #ffd1e8, #cfe9ff);
+    border-radius: 999px;
+    width: 56px;
+    height: 56px;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.1s ease;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .speak:hover { transform: translateY(-2px); }
+  .speak:active, .speak.playing { transform: scale(0.92); }
+  .speak:focus-visible { outline: 3px solid #ffb86b; outline-offset: 2px; }
+  .nav {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .nav button {
+    border: 0;
+    background: white;
+    border-radius: 999px;
+    padding: 10px 22px;
+    font: inherit;
+    font-weight: 700;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav button:hover { transform: translateY(-2px); }
+  .nav button:active { transform: scale(0.96); }
+  .nav button:focus-visible { outline: 3px solid #ffb86b; outline-offset: 2px; }
+  @media (max-width: 480px) {
+    .row { gap: 10px; padding: 12px 14px; }
+    .row .flag { font-size: 22px; }
+    .speak { width: 48px; height: 48px; font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>🦁 Zvířátka</h1>
+    <div class="counter" id="counter">1 / 10</div>
+  </header>
+  <main>
+    <button class="animal" id="animal" aria-label="Další zvířátko" type="button">🐶</button>
+    <p class="hint">Klikni na zvířátko pro další</p>
+
+    <div class="row">
+      <span class="flag">🇨🇿</span>
+      <div class="name" id="nameCs">PES</div>
+      <button class="speak" id="speakCs" aria-label="Vyslovit česky" type="button">🔊</button>
+    </div>
+
+    <div class="row">
+      <span class="flag">🇬🇧</span>
+      <div class="name" id="nameEn">DOG</div>
+      <button class="speak" id="speakEn" aria-label="Speak in English" type="button">🔊</button>
+    </div>
+
+    <div class="nav">
+      <button id="prev" type="button">← Předchozí</button>
+      <button id="next" type="button">Další →</button>
+    </div>
+  </main>
+<script>
+  const ANIMALS = [
+    { emoji: "🐶", cs: "PES",     en: "DOG" },
+    { emoji: "🐱", cs: "KOČKA",   en: "CAT" },
+    { emoji: "🐮", cs: "KRÁVA",   en: "COW" },
+    { emoji: "🐷", cs: "PRASE",   en: "PIG" },
+    { emoji: "🐴", cs: "KŮŇ",     en: "HORSE" },
+    { emoji: "🐰", cs: "KRÁLÍK",  en: "RABBIT" },
+    { emoji: "🐻", cs: "MEDVĚD",  en: "BEAR" },
+    { emoji: "🦁", cs: "LEV",     en: "LION" },
+    { emoji: "🐘", cs: "SLON",    en: "ELEPHANT" },
+    { emoji: "🐵", cs: "OPICE",   en: "MONKEY" },
+  ];
+
+  const animalEl = document.getElementById("animal");
+  const counterEl = document.getElementById("counter");
+  const nameCsEl = document.getElementById("nameCs");
+  const nameEnEl = document.getElementById("nameEn");
+  const speakCsBtn = document.getElementById("speakCs");
+  const speakEnBtn = document.getElementById("speakEn");
+  const prevBtn = document.getElementById("prev");
+  const nextBtn = document.getElementById("next");
+
+  let index = 0;
+  try {
+    const saved = parseInt(localStorage.getItem("animals.index") || "0", 10);
+    if (Number.isFinite(saved) && saved >= 0 && saved < ANIMALS.length) index = saved;
+  } catch (_) {}
+
+  function speak(text, lang, btn) {
+    if (!("speechSynthesis" in window)) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text.toLocaleLowerCase(lang));
+      u.lang = lang;
+      u.rate = 0.9;
+      if (btn) {
+        btn.classList.add("playing");
+        const clear = () => btn.classList.remove("playing");
+        u.onend = clear;
+        u.onerror = clear;
+        setTimeout(clear, 2500);
+      }
+      speechSynthesis.speak(u);
+    } catch (_) {}
+  }
+
+  function render() {
+    const a = ANIMALS[index];
+    animalEl.textContent = a.emoji;
+    nameCsEl.textContent = a.cs;
+    nameEnEl.textContent = a.en;
+    counterEl.textContent = `${index + 1} / ${ANIMALS.length}`;
+    try { localStorage.setItem("animals.index", String(index)); } catch (_) {}
+  }
+
+  function step(delta) {
+    index = (index + delta + ANIMALS.length) % ANIMALS.length;
+    animalEl.classList.add("tap");
+    setTimeout(() => animalEl.classList.remove("tap"), 200);
+    render();
+  }
+
+  animalEl.addEventListener("click", () => step(1));
+  nextBtn.addEventListener("click", () => step(1));
+  prevBtn.addEventListener("click", () => step(-1));
+  speakCsBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    speak(ANIMALS[index].cs, "cs-CZ", speakCsBtn);
+  });
+  speakEnBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    speak(ANIMALS[index].en, "en-US", speakEnBtn);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); step(1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+  });
+
+  render();
+</script>
+</body>
+</html>
