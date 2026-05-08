@@ -311,6 +311,48 @@
     font-size: 12px;
     opacity: 0.55;
   }
+
+  /* Uppercase color names */
+  .pot .label,
+  .color-name {
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  /* Language switcher */
+  .lang-switch {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    display: inline-flex;
+    background: white;
+    border-radius: 999px;
+    padding: 3px;
+    box-shadow: var(--shadow-sm);
+    z-index: 60;
+    gap: 2px;
+  }
+  .lang-switch button {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: var(--ink);
+    opacity: 0.55;
+    transition: background 0.15s ease, opacity 0.15s ease;
+  }
+  .lang-switch button.active {
+    background: linear-gradient(135deg, #ffb86b, #ff7eb6);
+    color: white;
+    opacity: 1;
+  }
+  .lang-switch button:hover { opacity: 1; }
+
   @media (max-width: 720px) {
     header { padding: 14px 16px 0; }
     p.subtitle { display: none; }
@@ -324,16 +366,20 @@
     button.btn { font-size: 14px; padding: 9px 16px; }
     main { padding-bottom: 16px; }
     footer { display: none; }
+    .lang-switch { top: 8px; right: 8px; }
+    .lang-switch button { font-size: 12px; padding: 5px 10px; }
   }
 </style>
 </head>
 <body>
+  <div class="lang-switch" role="group" aria-label="Language">
+    <button type="button" data-lang="en" class="active">EN</button>
+    <button type="button" data-lang="cs">CZ</button>
+  </div>
+
   <header>
-    <h1>
-      <span class="pop">P</span><span class="pop">a</span><span class="pop">i</span><span class="pop">n</span><span class="pop">t</span>
-      Pot Mixer
-    </h1>
-    <p class="subtitle">Tap a pot to add a drop. Mix the colors and try to match the target!</p>
+    <h1 id="title"></h1>
+    <p class="subtitle" id="subtitle"></p>
   </header>
 
   <main>
@@ -347,7 +393,7 @@
             <ellipse cx="50" cy="22" rx="34" ry="10" fill="none" stroke="#a51c1c" stroke-width="2"/>
             <ellipse cx="40" cy="20" rx="10" ry="3" fill="#ff8a8a" opacity="0.6"/>
           </svg>
-          <div class="label">Red</div>
+          <div class="label" data-label="red">Red</div>
           <div class="count" data-count="red">0 drops</div>
         </button>
         <button class="pot" data-color="yellow" aria-label="Add a drop of yellow paint">
@@ -357,7 +403,7 @@
             <ellipse cx="50" cy="22" rx="34" ry="10" fill="none" stroke="#a07800" stroke-width="2"/>
             <ellipse cx="40" cy="20" rx="10" ry="3" fill="#fff2a8" opacity="0.7"/>
           </svg>
-          <div class="label">Yellow</div>
+          <div class="label" data-label="yellow">Yellow</div>
           <div class="count" data-count="yellow">0 drops</div>
         </button>
         <button class="pot" data-color="blue" aria-label="Add a drop of blue paint">
@@ -367,7 +413,7 @@
             <ellipse cx="50" cy="22" rx="34" ry="10" fill="none" stroke="#103a82" stroke-width="2"/>
             <ellipse cx="40" cy="20" rx="10" ry="3" fill="#a3c4ff" opacity="0.7"/>
           </svg>
-          <div class="label">Blue</div>
+          <div class="label" data-label="blue">Blue</div>
           <div class="count" data-count="blue">0 drops</div>
         </button>
       </div>
@@ -384,27 +430,99 @@
 
       <!-- Challenge panel -->
       <div class="panel">
-        <h2>🎯 Match this color</h2>
+        <h2 id="matchTitle">🎯 Match this color</h2>
         <div class="target-swatch" id="targetSwatch"></div>
-        <div class="target-name" id="targetName">Orange</div>
+        <div class="target-name" id="targetName"></div>
         <div class="match-meter"><div class="match-fill" id="matchFill"></div></div>
-        <div class="match-text" id="matchText">0% match</div>
+        <div class="match-text" id="matchText"></div>
       </div>
     </div>
 
     <div class="controls">
-      <button class="btn primary" id="resetBtn">🧽 Wash bowl</button>
-      <button class="btn ghost" id="newTargetBtn">🎲 New target</button>
+      <button class="btn primary" id="resetBtn"></button>
+      <button class="btn ghost" id="newTargetBtn"></button>
     </div>
   </main>
 
-  <footer>Made for tiny artists. Mix red + yellow, yellow + blue, or red + blue and see the magic ✨</footer>
+  <footer id="footer"></footer>
 
   <div class="confetti" id="confetti" aria-hidden="true"></div>
 
 <script>
 (function () {
   "use strict";
+
+  // i18n strings
+  const T = {
+    en: {
+      titlePop: "Paint",
+      titleRest: " Pot Mixer",
+      subtitle: "Tap a pot to add a drop. Mix the colors and try to match the target!",
+      pots: { red: "Red", yellow: "Yellow", blue: "Blue" },
+      potAria: { red: "Add a drop of red paint", yellow: "Add a drop of yellow paint", blue: "Add a drop of blue paint" },
+      drops: (n) => n + (n === 1 ? " drop" : " drops"),
+      emptyBowl: "Empty bowl",
+      matchTitle: "🎯 Match this color",
+      matchPct: (n) => n + "% match",
+      perfect: "✨ Perfect match! ✨",
+      reset: "🧽 Wash bowl",
+      newTarget: "🎲 New target",
+      footer: "Made for tiny artists. Mix red + yellow, yellow + blue, or red + blue and see the magic ✨",
+      palette: {
+        Red: "Red", Crimson: "Crimson", Pink: "Pink", Coral: "Coral",
+        Orange: "Orange", Peach: "Peach", Yellow: "Yellow", Gold: "Gold",
+        Olive: "Olive", Lime: "Lime", Green: "Green", Mint: "Mint",
+        Teal: "Teal", Sky: "Sky", Blue: "Blue", Indigo: "Indigo",
+        Purple: "Purple", Magenta: "Magenta", Brown: "Brown", Tan: "Tan",
+        Beige: "Beige", Gray: "Gray", Black: "Black", White: "White"
+      },
+      targets: {
+        Orange: "Orange", Green: "Green", Purple: "Purple",
+        "Red-orange": "Red-orange", "Golden yellow": "Golden yellow",
+        Lime: "Lime", Teal: "Teal", Magenta: "Magenta",
+        Indigo: "Indigo", Brown: "Brown"
+      }
+    },
+    cs: {
+      titlePop: "Mixér",
+      titleRest: " barev",
+      subtitle: "Klepni na kelímek a přidej kapku. Smíchej barvy a trefa cíle!",
+      pots: { red: "Červená", yellow: "Žlutá", blue: "Modrá" },
+      potAria: { red: "Přidat kapku červené barvy", yellow: "Přidat kapku žluté barvy", blue: "Přidat kapku modré barvy" },
+      drops: (n) => {
+        if (n === 1) return "1 kapka";
+        if (n >= 2 && n <= 4) return n + " kapky";
+        return n + " kapek";
+      },
+      emptyBowl: "Prázdné akvárium",
+      matchTitle: "🎯 Najdi tuto barvu",
+      matchPct: (n) => n + " % shoda",
+      perfect: "✨ Přesná trefa! ✨",
+      reset: "🧽 Vypláchnout",
+      newTarget: "🎲 Nový cíl",
+      footer: "Pro malé umělce. Smíchej červenou + žlutou, žlutou + modrou nebo červenou + modrou a uvidíš kouzlo ✨",
+      palette: {
+        Red: "Červená", Crimson: "Karmínová", Pink: "Růžová", Coral: "Korálová",
+        Orange: "Oranžová", Peach: "Broskvová", Yellow: "Žlutá", Gold: "Zlatá",
+        Olive: "Olivová", Lime: "Limetková", Green: "Zelená", Mint: "Mátová",
+        Teal: "Modrozelená", Sky: "Nebesky modrá", Blue: "Modrá", Indigo: "Indigo",
+        Purple: "Fialová", Magenta: "Purpurová", Brown: "Hnědá", Tan: "Pískově hnědá",
+        Beige: "Béžová", Gray: "Šedá", Black: "Černá", White: "Bílá"
+      },
+      targets: {
+        Orange: "Oranžová", Green: "Zelená", Purple: "Fialová",
+        "Red-orange": "Červenooranžová", "Golden yellow": "Sytě žlutá",
+        Lime: "Limetková", Teal: "Modrozelená", Magenta: "Purpurová",
+        Indigo: "Indigo", Brown: "Hnědá"
+      }
+    }
+  };
+
+  let lang = (function () {
+    try { return localStorage.getItem("color-mixer-lang") || "en"; } catch (e) { return "en"; }
+  })();
+  if (!T[lang]) lang = "en";
+  const tr = () => T[lang];
 
   // RYB cube corners as RGB (paint-like primaries)
   // (r, y, b) ∈ {0,1}^3
@@ -470,8 +588,7 @@
     ["White",   [250, 250, 250]]
   ];
 
-  function nameForRGB(rgb, isEmpty) {
-    if (isEmpty) return "Empty bowl";
+  function paletteKeyForRGB(rgb) {
     let best = null, bestD = Infinity;
     for (const [name, c] of PALETTE) {
       const dr = rgb[0] - c[0], dg = rgb[1] - c[1], db = rgb[2] - c[2];
@@ -481,18 +598,24 @@
     return best;
   }
 
-  // Targets the kid can try to reach. Each is a name + the drop recipe to make it.
+  function nameForRGB(rgb, isEmpty) {
+    if (isEmpty) return tr().emptyBowl;
+    return tr().palette[paletteKeyForRGB(rgb)];
+  }
+
+  // Targets the kid can try to reach. Each is a key + the drop recipe to make it.
+  // The display name comes from translations[lang].targets[key].
   const TARGETS = [
-    { name: "Orange",       recipe: { red: 1, yellow: 1, blue: 0 } },
-    { name: "Green",        recipe: { red: 0, yellow: 1, blue: 1 } },
-    { name: "Purple",       recipe: { red: 1, yellow: 0, blue: 1 } },
-    { name: "Red-orange",   recipe: { red: 2, yellow: 1, blue: 0 } },
-    { name: "Golden yellow",recipe: { red: 1, yellow: 2, blue: 0 } },
-    { name: "Lime",         recipe: { red: 0, yellow: 2, blue: 1 } },
-    { name: "Teal",         recipe: { red: 0, yellow: 1, blue: 2 } },
-    { name: "Magenta",      recipe: { red: 2, yellow: 0, blue: 1 } },
-    { name: "Indigo",       recipe: { red: 1, yellow: 0, blue: 2 } },
-    { name: "Brown",        recipe: { red: 1, yellow: 1, blue: 1 } }
+    { key: "Orange",        recipe: { red: 1, yellow: 1, blue: 0 } },
+    { key: "Green",         recipe: { red: 0, yellow: 1, blue: 1 } },
+    { key: "Purple",        recipe: { red: 1, yellow: 0, blue: 1 } },
+    { key: "Red-orange",    recipe: { red: 2, yellow: 1, blue: 0 } },
+    { key: "Golden yellow", recipe: { red: 1, yellow: 2, blue: 0 } },
+    { key: "Lime",          recipe: { red: 0, yellow: 2, blue: 1 } },
+    { key: "Teal",          recipe: { red: 0, yellow: 1, blue: 2 } },
+    { key: "Magenta",       recipe: { red: 2, yellow: 0, blue: 1 } },
+    { key: "Indigo",        recipe: { red: 1, yellow: 0, blue: 2 } },
+    { key: "Brown",         recipe: { red: 1, yellow: 1, blue: 1 } }
   ];
 
   function targetRGB(t) {
@@ -516,7 +639,7 @@
     let t;
     do {
       t = TARGETS[Math.floor(Math.random() * TARGETS.length)];
-    } while (avoid && t.name === avoid.name);
+    } while (avoid && t.key === avoid.key);
     return t;
   }
 
@@ -525,7 +648,7 @@
     state.won = false;
     const rgb = targetRGB(t);
     targetSwatch.style.background = `rgb(${rgb.join(",")})`;
-    targetName.textContent = t.name;
+    targetName.textContent = tr().targets[t.key];
     updateMatch();
   }
 
@@ -544,12 +667,12 @@
     // Boost feel-good factor: square it a bit so small differences read closer.
     const display = Math.min(100, Math.round(Math.pow(pct / 100, 0.6) * 100));
     matchFill.style.width = display + "%";
-    matchText.textContent = display + "% match";
+    matchText.textContent = tr().matchPct(display);
     const empty = state.red + state.yellow + state.blue === 0;
     if (!empty && dist < 18 && !state.won) {
       state.won = true;
       celebrate();
-      matchText.textContent = "✨ Perfect match! ✨";
+      matchText.textContent = tr().perfect;
     }
   }
 
@@ -560,8 +683,7 @@
     colorHex.textContent = rgbToHex(rgb);
     document.querySelectorAll("[data-count]").forEach(el => {
       const c = el.dataset.count;
-      const n = state[c];
-      el.textContent = n + (n === 1 ? " drop" : " drops");
+      el.textContent = tr().drops(state[c]);
     });
     updateMatch();
   }
@@ -639,9 +761,49 @@
     reset();
   });
 
+  function applyLanguage(next) {
+    if (!T[next]) return;
+    lang = next;
+    try { localStorage.setItem("color-mixer-lang", lang); } catch (e) {}
+    document.documentElement.lang = lang === "cs" ? "cs" : "en";
+
+    const t = tr();
+    // Title with bouncing letters
+    const titleEl = document.getElementById("title");
+    titleEl.innerHTML = [...t.titlePop]
+      .map(c => `<span class="pop">${c}</span>`)
+      .join("") + t.titleRest;
+
+    document.getElementById("subtitle").textContent = t.subtitle;
+    document.querySelectorAll("[data-label]").forEach(el => {
+      el.textContent = t.pots[el.dataset.label];
+    });
+    document.querySelectorAll(".pot[data-color]").forEach(el => {
+      el.setAttribute("aria-label", t.potAria[el.dataset.color]);
+    });
+    document.getElementById("matchTitle").textContent = t.matchTitle;
+    document.getElementById("resetBtn").textContent = t.reset;
+    document.getElementById("newTargetBtn").textContent = t.newTarget;
+    document.getElementById("footer").textContent = t.footer;
+
+    // Re-render dynamic strings
+    if (state.target) {
+      document.getElementById("targetName").textContent = t.targets[state.target.key];
+    }
+    updateBowl();
+
+    document.querySelectorAll(".lang-switch button").forEach(b => {
+      b.classList.toggle("active", b.dataset.lang === lang);
+    });
+  }
+
+  document.querySelectorAll(".lang-switch button").forEach(b => {
+    b.addEventListener("click", () => applyLanguage(b.dataset.lang));
+  });
+
   // Init
   setTarget(pickRandomTarget());
-  updateBowl();
+  applyLanguage(lang);
 })();
 </script>
 </body>
