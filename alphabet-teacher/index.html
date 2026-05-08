@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Alphabet Teacher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-1: #fff7e8;
+    --bg-2: #ffe5f1;
+    --ink: #2b2140;
+    --shadow: 0 10px 30px rgba(43, 33, 64, 0.18);
+    --shadow-sm: 0 4px 14px rgba(43, 33, 64, 0.14);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: "Fredoka", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 10% 0%, #ffd1e8 0%, transparent 40%),
+      radial-gradient(circle at 90% 10%, #cfe9ff 0%, transparent 45%),
+      radial-gradient(circle at 50% 100%, #fff3b0 0%, transparent 50%),
+      linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px clamp(10px, 2vw, 18px);
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-size: clamp(18px, 3vw, 26px);
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 0 #fff;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .seg {
+    display: inline-flex;
+    background: white;
+    border-radius: 999px;
+    padding: 3px;
+    box-shadow: var(--shadow-sm);
+  }
+  .seg button {
+    border: 0;
+    background: transparent;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font: inherit;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+  }
+  .seg button.active {
+    background: linear-gradient(135deg, #ffd1e8, #cfe9ff);
+    box-shadow: var(--shadow-sm);
+  }
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border-radius: 999px;
+    padding: 6px 12px;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    user-select: none;
+    line-height: 1;
+  }
+  .toggle input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 32px;
+    height: 18px;
+    background: #ddd;
+    border-radius: 999px;
+    position: relative;
+    transition: background 0.15s ease;
+    cursor: pointer;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  .toggle input::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .toggle input:checked {
+    background: linear-gradient(135deg, #ff8fbe, #74b9ff);
+  }
+  .toggle input:checked::after {
+    transform: translateX(14px);
+  }
+  .toggle.hidden { display: none; }
+  main {
+    flex: 1;
+    padding: 4px clamp(8px, 2vw, 16px) clamp(8px, 2vw, 16px);
+    min-height: 0;
+    display: flex;
+  }
+  .grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 6), 1fr);
+    grid-auto-rows: 1fr;
+    gap: clamp(4px, 1vw, 10px);
+  }
+  .letter {
+    background: white;
+    border: none;
+    border-radius: clamp(10px, 1.5vw, 18px);
+    box-shadow: var(--shadow-sm);
+    font-family: inherit;
+    font-weight: 700;
+    color: var(--ink);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--cell-font, 28px);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .letter:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+  .letter:active, .letter.playing {
+    transform: scale(0.94);
+    background: linear-gradient(135deg, #ffd1e8, #cfe9ff);
+  }
+  .letter:focus-visible {
+    outline: 3px solid #ffb86b;
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1 id="title">🔤 Alphabet</h1>
+    <div class="controls">
+      <div class="seg" id="lang">
+        <button data-lang="en">English</button>
+        <button data-lang="cs">Čeština</button>
+      </div>
+      <label class="toggle hidden" id="accentToggle">
+        <span id="accentLabel">Diacritics</span>
+        <input type="checkbox" id="accents" />
+      </label>
+    </div>
+  </header>
+  <main>
+    <div class="grid" id="grid" aria-label="Alphabet"></div>
+  </main>
+<script>
+  const ALPHABETS = {
+    en: ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
+    cs_plain: ["A","B","C","D","E","F","G","H","Ch","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
+    cs_full: ["A","Á","B","C","Č","D","Ď","E","É","Ě","F","G","H","Ch","I","Í","J","K","L","M","N","Ň","O","Ó","P","Q","R","Ř","S","Š","T","Ť","U","Ú","Ů","V","W","X","Y","Ý","Z","Ž"],
+  };
+  const PRONUNCIATIONS = {
+    en: {},
+    cs: { "Ch": "chá" },
+  };
+  const TITLES = { en: "🔤 Alphabet", cs: "🔤 Abeceda" };
+  const ACCENT_LABELS = { en: "Diacritics", cs: "Diakritika" };
+
+  const grid = document.getElementById("grid");
+  const titleEl = document.getElementById("title");
+  const langButtons = document.querySelectorAll("#lang button");
+  const accentToggle = document.getElementById("accentToggle");
+  const accentInput = document.getElementById("accents");
+  const accentLabel = document.getElementById("accentLabel");
+
+  let lang = "en";
+  let accents = false;
+  try {
+    lang = localStorage.getItem("alphabet.lang") || lang;
+    accents = localStorage.getItem("alphabet.accents") === "1";
+  } catch (_) {}
+
+  function getLetters() {
+    if (lang === "en") return ALPHABETS.en;
+    return accents ? ALPHABETS.cs_full : ALPHABETS.cs_plain;
+  }
+
+  function bestCols(count, w, h) {
+    let best = 1, bestScore = Infinity;
+    for (let c = 1; c <= count; c++) {
+      const r = Math.ceil(count / c);
+      const cw = w / c;
+      const ch = h / r;
+      const aspect = Math.max(cw, ch) / Math.min(cw, ch);
+      if (aspect < bestScore) { bestScore = aspect; best = c; }
+    }
+    return best;
+  }
+
+  function speak(letter) {
+    if (!("speechSynthesis" in window)) return;
+    try {
+      speechSynthesis.cancel();
+      const text = (PRONUNCIATIONS[lang] && PRONUNCIATIONS[lang][letter]) || letter;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang === "cs" ? "cs-CZ" : "en-US";
+      u.rate = 0.9;
+      speechSynthesis.speak(u);
+    } catch (_) {}
+  }
+
+  function layout() {
+    const w = grid.clientWidth;
+    const h = grid.clientHeight;
+    const count = grid.children.length;
+    if (!w || !h || !count) return;
+    const cols = bestCols(count, w, h);
+    const rows = Math.ceil(count / cols);
+    const gap = parseFloat(getComputedStyle(grid).gap) || 6;
+    const cellW = (w - gap * (cols - 1)) / cols;
+    const cellH = (h - gap * (rows - 1)) / rows;
+    const cell = Math.min(cellW, cellH);
+    grid.style.setProperty("--cols", cols);
+    grid.style.setProperty("--cell-font", Math.max(14, Math.floor(cell * 0.5)) + "px");
+  }
+
+  function render() {
+    const letters = getLetters();
+    grid.innerHTML = "";
+    for (const L of letters) {
+      const btn = document.createElement("button");
+      btn.className = "letter";
+      btn.textContent = L;
+      btn.setAttribute("aria-label", L);
+      btn.addEventListener("click", () => {
+        speak(L);
+        btn.classList.add("playing");
+        setTimeout(() => btn.classList.remove("playing"), 220);
+      });
+      grid.appendChild(btn);
+    }
+    layout();
+  }
+
+  function setLang(newLang) {
+    lang = newLang;
+    langButtons.forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+    accentToggle.classList.toggle("hidden", lang !== "cs");
+    titleEl.textContent = TITLES[lang];
+    accentLabel.textContent = ACCENT_LABELS[lang];
+    document.documentElement.lang = lang;
+    try { localStorage.setItem("alphabet.lang", lang); } catch (_) {}
+    render();
+  }
+
+  function setAccents(val) {
+    accents = val;
+    accentInput.checked = val;
+    try { localStorage.setItem("alphabet.accents", val ? "1" : "0"); } catch (_) {}
+    render();
+  }
+
+  langButtons.forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
+  accentInput.addEventListener("change", () => setAccents(accentInput.checked));
+  window.addEventListener("resize", layout);
+  if ("ResizeObserver" in window) new ResizeObserver(layout).observe(grid);
+
+  setLang(lang);
+  setAccents(accents);
+</script>
+</body>
+</html>
