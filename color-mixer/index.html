@@ -442,39 +442,43 @@
     return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
   }
 
-  // Named color guesses based on drop ratios
-  function nameForDrops(r, y, b) {
-    if (r + y + b === 0) return "Empty bowl";
-    const total = r + y + b;
-    const fr = r / total, fy = y / total, fb = b / total;
-    const has = (n) => n > 0;
-    const dom = (a, others) => others.every(o => a >= o * 1.6);
+  // Named palette — the displayed name is the closest entry to the mixed RGB.
+  const PALETTE = [
+    ["Red",     [220,  40,  40]],
+    ["Crimson", [150,  30,  50]],
+    ["Pink",    [255, 130, 180]],
+    ["Coral",   [255, 110, 100]],
+    ["Orange",  [255, 140,  40]],
+    ["Peach",   [255, 200, 160]],
+    ["Yellow",  [255, 215,  60]],
+    ["Gold",    [220, 170,  40]],
+    ["Olive",   [130, 130,  40]],
+    ["Lime",    [180, 230,  60]],
+    ["Green",   [ 40, 170,  80]],
+    ["Mint",    [150, 230, 180]],
+    ["Teal",    [ 40, 160, 160]],
+    ["Sky",     [120, 180, 240]],
+    ["Blue",    [ 50, 100, 200]],
+    ["Indigo",  [ 60,  60, 140]],
+    ["Purple",  [130,  50, 160]],
+    ["Magenta", [210,  60, 170]],
+    ["Brown",   [110,  70,  40]],
+    ["Tan",     [200, 170, 130]],
+    ["Beige",   [240, 230, 200]],
+    ["Gray",    [160, 160, 160]],
+    ["Black",   [ 30,  25,  20]],
+    ["White",   [250, 250, 250]]
+  ];
 
-    if (has(r) && has(y) && has(b)) {
-      if (dom(r, [y, b]) && r >= 2 * Math.max(y, b)) return "Earthy red";
-      if (dom(y, [r, b])) return "Olive";
-      if (dom(b, [r, y])) return "Slate";
-      return "Brown";
+  function nameForRGB(rgb, isEmpty) {
+    if (isEmpty) return "Empty bowl";
+    let best = null, bestD = Infinity;
+    for (const [name, c] of PALETTE) {
+      const dr = rgb[0] - c[0], dg = rgb[1] - c[1], db = rgb[2] - c[2];
+      const d = dr * dr + dg * dg + db * db;
+      if (d < bestD) { bestD = d; best = name; }
     }
-    if (has(r) && has(y)) {
-      if (dom(r, [y])) return "Red-orange";
-      if (dom(y, [r])) return "Golden yellow";
-      return "Orange";
-    }
-    if (has(y) && has(b)) {
-      if (dom(y, [b])) return "Lime";
-      if (dom(b, [y])) return "Teal";
-      return "Green";
-    }
-    if (has(r) && has(b)) {
-      if (dom(r, [b])) return "Magenta";
-      if (dom(b, [r])) return "Indigo";
-      return "Purple";
-    }
-    if (has(r)) return "Red";
-    if (has(y)) return "Yellow";
-    if (has(b)) return "Blue";
-    return "Mystery";
+    return best;
   }
 
   // Targets the kid can try to reach. Each is a name + the drop recipe to make it.
@@ -552,7 +556,7 @@
   function updateBowl() {
     const rgb = mixDrops(state.red, state.yellow, state.blue);
     bowl.style.background = `rgb(${rgb.join(",")})`;
-    colorName.textContent = nameForDrops(state.red, state.yellow, state.blue);
+    colorName.textContent = nameForRGB(rgb, state.red + state.yellow + state.blue === 0);
     colorHex.textContent = rgbToHex(rgb);
     document.querySelectorAll("[data-count]").forEach(el => {
       const c = el.dataset.count;
