@@ -18,3 +18,7 @@ Every time you create a new tool, you MUST:
 ## When removing or renaming a tool
 
 Also update the root `/index.html` to remove or rename the corresponding card.
+
+## After merging a PR
+
+Always delete the PR's source branch (both remote and local) once it's merged. Don't leave merged feature branches lying around.
