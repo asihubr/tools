@@ -345,6 +345,29 @@
   .lang-switch:active { transform: scale(0.95); }
   .lang-switch:focus-visible { outline: 3px solid #ffb86b; outline-offset: 2px; }
 
+  /* Home link back to launcher */
+  .home-link {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: var(--shadow-sm);
+    font-size: 22px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    z-index: 60;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .home-link:hover { transform: scale(1.06); }
+  .home-link:active { transform: scale(0.95); }
+  .home-link:focus-visible { outline: 3px solid #ffb86b; outline-offset: 2px; }
+
   /* Fish swimming in the mixing aquarium */
   .bowl .fish {
     position: absolute;
@@ -380,10 +403,12 @@
     main { padding-bottom: 16px; }
     footer { display: none; }
     .lang-switch { top: 8px; right: 8px; width: 38px; height: 38px; font-size: 19px; }
+    .home-link { top: 8px; left: 8px; width: 38px; height: 38px; font-size: 19px; }
   }
 </style>
 </head>
 <body>
+  <a class="home-link" href="../" aria-label="Home" title="Home">🏠</a>
   <button type="button" class="lang-switch" id="langBtn" aria-label="Switch language"></button>
 
   <header>
