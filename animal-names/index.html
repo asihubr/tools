@@ -36,8 +36,29 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 12px clamp(10px, 2vw, 18px);
+    padding: 12px clamp(10px, 2vw, 18px) 12px 64px;
   }
+  .home-link {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: var(--shadow-sm);
+    font-size: 22px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    z-index: 60;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .home-link:hover { transform: scale(1.06); }
+  .home-link:active { transform: scale(0.95); }
+  .home-link:focus-visible { outline: 3px solid #ffb86b; outline-offset: 2px; }
   h1 {
     font-size: clamp(18px, 3vw, 26px);
     margin: 0;
@@ -154,13 +175,16 @@
   .nav button:active { transform: scale(0.96); }
   .nav button:focus-visible { outline: 3px solid #ffb86b; outline-offset: 2px; }
   @media (max-width: 480px) {
+    header { padding: 12px clamp(10px, 2vw, 18px) 12px 54px; }
     .row { gap: 10px; padding: 12px 14px; }
     .row .flag { font-size: 22px; }
     .speak { width: 48px; height: 48px; font-size: 22px; }
+    .home-link { top: 8px; left: 8px; width: 38px; height: 38px; font-size: 19px; }
   }
 </style>
 </head>
 <body>
+  <a class="home-link" href="../" aria-label="Home" title="Home">🏠</a>
   <header>
     <h1>🦁 Zvířátka</h1>
     <div class="counter" id="counter">1 / 30</div>
