@@ -34,9 +34,9 @@
   header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 10px;
-    padding: 12px clamp(10px, 2vw, 18px) 12px 64px;
+    padding: 12px 64px;
   }
   .home-link {
     position: fixed;
@@ -66,8 +66,13 @@
     text-shadow: 0 2px 0 #fff;
     font-weight: 700;
     line-height: 1;
+    text-align: center;
   }
   .counter {
+    position: fixed;
+    top: 19px;
+    right: 12px;
+    z-index: 60;
     font-size: 14px;
     font-weight: 600;
     background: white;
@@ -175,11 +180,12 @@
   .nav button:active { transform: scale(0.96); }
   .nav button:focus-visible { outline: 3px solid #ffb86b; outline-offset: 2px; }
   @media (max-width: 480px) {
-    header { padding: 12px clamp(10px, 2vw, 18px) 12px 54px; }
+    header { padding: 12px 54px; }
     .row { gap: 10px; padding: 12px 14px; }
     .row .flag { font-size: 22px; }
     .speak { width: 48px; height: 48px; font-size: 22px; }
     .home-link { top: 8px; left: 8px; width: 38px; height: 38px; font-size: 19px; }
+    .counter { top: 14px; right: 8px; padding: 5px 12px; font-size: 13px; }
   }
 </style>
 </head>
