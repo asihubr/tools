@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Alphabet Teacher</title>
+<title>Numbers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -76,12 +76,6 @@
     flex-wrap: wrap;
     justify-content: center;
   }
-  .lang-wrap {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    z-index: 60;
-  }
   .seg {
     display: inline-flex;
     background: white;
@@ -100,57 +94,19 @@
     cursor: pointer;
     font-size: 14px;
     line-height: 1;
-    min-width: 36px;
+    min-width: 48px;
   }
   .seg button.active {
     background: linear-gradient(135deg, #ffd1e8, #cfe9ff);
     box-shadow: var(--shadow-sm);
   }
-  .toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: white;
-    border-radius: 999px;
-    padding: 6px 12px;
-    box-shadow: var(--shadow-sm);
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    user-select: none;
-    line-height: 1;
-  }
-  .toggle input {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 32px;
-    height: 18px;
-    background: #ddd;
-    border-radius: 999px;
-    position: relative;
-    transition: background 0.15s ease;
-    cursor: pointer;
-    margin: 0;
-    flex-shrink: 0;
-  }
-  .toggle input::after {
-    content: "";
-    position: absolute;
-    top: 2px; left: 2px;
-    width: 14px; height: 14px;
-    background: white;
-    border-radius: 50%;
-    transition: transform 0.15s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  }
-  .toggle input:checked {
-    background: linear-gradient(135deg, #ff8fbe, #74b9ff);
-  }
-  .toggle input:checked::after {
-    transform: translateX(14px);
-  }
-  .toggle.hidden { display: none; }
 
+  .lang-wrap {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 60;
+  }
   .lang-trigger {
     display: inline-flex;
     align-items: center;
@@ -222,7 +178,7 @@
     grid-auto-rows: 1fr;
     gap: clamp(4px, 1vw, 10px);
   }
-  .letter {
+  .number {
     background: white;
     border: none;
     border-radius: clamp(10px, 1.5vw, 18px);
@@ -241,15 +197,15 @@
     -webkit-tap-highlight-color: transparent;
     user-select: none;
   }
-  .letter:hover {
+  .number:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow);
   }
-  .letter:active, .letter.playing {
+  .number:active, .number.playing {
     transform: scale(0.94);
     background: linear-gradient(135deg, #ffd1e8, #cfe9ff);
   }
-  .letter:focus-visible {
+  .number:focus-visible {
     outline: 3px solid #ffb86b;
     outline-offset: 2px;
   }
@@ -263,16 +219,13 @@
 <body>
   <a class="home-link" href="../" aria-label="Home" title="Home">🏠</a>
   <header>
-    <h1 id="title">🔤 Alphabet</h1>
+    <h1 id="title">🔢 Numbers</h1>
     <div class="controls">
-      <div class="seg" id="case" role="group" aria-label="Letter case">
-        <button data-case="upper" aria-pressed="true">A</button>
-        <button data-case="lower" aria-pressed="false">a</button>
+      <div class="seg" id="range" role="group" aria-label="Range">
+        <button data-range="10" aria-pressed="false">1–10</button>
+        <button data-range="20" aria-pressed="true">1–20</button>
+        <button data-range="100" aria-pressed="false">1–100</button>
       </div>
-      <label class="toggle hidden" id="accentToggle">
-        <span id="accentLabel">Diacritics</span>
-        <input type="checkbox" id="accents" />
-      </label>
     </div>
     <div class="lang-wrap">
       <button class="lang-trigger" id="langTrigger" aria-haspopup="listbox" aria-expanded="false">
@@ -284,7 +237,7 @@
     </div>
   </header>
   <main>
-    <div class="grid" id="grid" aria-label="Alphabet"></div>
+    <div class="grid" id="grid" aria-label="Numbers"></div>
   </main>
 <script>
   const LANGUAGES = [
@@ -300,73 +253,33 @@
     { code: "nl", name: "Nederlands",  flag: "🇳🇱", tts: "nl-NL" },
   ];
 
-  const ALPHABETS = {
-    en: ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
-    cs_plain: ["A","B","C","D","E","F","G","H","Ch","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
-    cs_full:  ["A","Á","B","C","Č","D","Ď","E","É","Ě","F","G","H","Ch","I","Í","J","K","L","M","N","Ň","O","Ó","P","Q","R","Ř","S","Š","T","Ť","U","Ú","Ů","V","W","X","Y","Ý","Z","Ž"],
-    es: ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","Ñ","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
-    fr: ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
-    de: ["A","Ä","B","C","D","E","F","G","H","I","J","K","L","M","N","O","Ö","P","Q","R","S","ß","T","U","Ü","V","W","X","Y","Z"],
-    it: ["A","B","C","D","E","F","G","H","I","L","M","N","O","P","Q","R","S","T","U","V","Z"],
-    pt: ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
-    ru: ["А","Б","В","Г","Д","Е","Ё","Ж","З","И","Й","К","Л","М","Н","О","П","Р","С","Т","У","Ф","Х","Ц","Ч","Ш","Щ","Ъ","Ы","Ь","Э","Ю","Я"],
-    pl: ["A","Ą","B","C","Ć","D","E","Ę","F","G","H","I","J","K","L","Ł","M","N","Ń","O","Ó","P","R","S","Ś","T","U","W","Y","Z","Ź","Ż"],
-    nl: ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
-  };
-
-  const PRONUNCIATIONS = {
-    cs: { upper: { "Ch": "chá" }, lower: { "ch": "chá" } },
-  };
-
   const TITLES = {
-    en: "🔤 Alphabet", cs: "🔤 Abeceda", es: "🔤 Alfabeto", fr: "🔤 Alphabet",
-    de: "🔤 Alphabet", it: "🔤 Alfabeto", pt: "🔤 Alfabeto", ru: "🔤 Алфавит",
-    pl: "🔤 Alfabet",  nl: "🔤 Alfabet",
-  };
-  const ACCENT_LABELS = {
-    en: "Diacritics", cs: "Diakritika", es: "Tildes", fr: "Diacritiques",
-    de: "Diakritika", it: "Diacritici", pt: "Diacríticos", ru: "Диакритика",
-    pl: "Znaki diakrytyczne", nl: "Diakritische tekens",
+    en: "🔢 Numbers", cs: "🔢 Čísla", es: "🔢 Números", fr: "🔢 Nombres",
+    de: "🔢 Zahlen",  it: "🔢 Numeri", pt: "🔢 Números", ru: "🔢 Числа",
+    pl: "🔢 Liczby",  nl: "🔢 Getallen",
   };
 
   const grid = document.getElementById("grid");
   const titleEl = document.getElementById("title");
-  const caseButtons = document.querySelectorAll("#case button");
-  const accentToggle = document.getElementById("accentToggle");
-  const accentInput = document.getElementById("accents");
-  const accentLabel = document.getElementById("accentLabel");
+  const rangeButtons = document.querySelectorAll("#range button");
   const langTrigger = document.getElementById("langTrigger");
   const langMenu = document.getElementById("langMenu");
   const langFlagEl = document.getElementById("langFlag");
   const langNameEl = document.getElementById("langName");
 
+  const VALID_RANGES = [10, 20, 100];
+
   let lang = "en";
-  let accents = false;
-  let letterCase = "upper";
+  let range = 20;
   try {
-    lang = localStorage.getItem("alphabet.lang") || lang;
-    accents = localStorage.getItem("alphabet.accents") === "1";
-    letterCase = localStorage.getItem("alphabet.case") || letterCase;
+    lang = localStorage.getItem("numbers.lang") || lang;
+    const savedRange = parseInt(localStorage.getItem("numbers.range") || "", 10);
+    if (VALID_RANGES.includes(savedRange)) range = savedRange;
   } catch (_) {}
   if (!LANGUAGES.find(l => l.code === lang)) lang = "en";
-  if (letterCase !== "upper" && letterCase !== "lower") letterCase = "upper";
 
   function langInfo() {
     return LANGUAGES.find(l => l.code === lang) || LANGUAGES[0];
-  }
-
-  function getBaseLetters() {
-    if (lang === "cs") return accents ? ALPHABETS.cs_full : ALPHABETS.cs_plain;
-    return ALPHABETS[lang] || ALPHABETS.en;
-  }
-
-  function toCase(letter, mode) {
-    if (letter === "Ch") return mode === "upper" ? "CH" : "ch";
-    if (letter === "ß") return "ß";
-    const locale = langInfo().tts;
-    return mode === "upper"
-      ? letter.toLocaleUpperCase(locale)
-      : letter.toLocaleLowerCase(locale);
   }
 
   function bestCols(count, w, h) {
@@ -381,16 +294,11 @@
     return best;
   }
 
-  function speak(letter) {
+  function speak(n) {
     if (!("speechSynthesis" in window)) return;
     try {
       speechSynthesis.cancel();
-      const lower = (letter === "CH" || letter === "Ch" || letter === "ch")
-        ? "ch"
-        : letter.toLocaleLowerCase(langInfo().tts);
-      const map = PRONUNCIATIONS[lang];
-      const text = (map && map.lower && map.lower[lower]) || lower;
-      const u = new SpeechSynthesisUtterance(text);
+      const u = new SpeechSynthesisUtterance(String(n));
       u.lang = langInfo().tts;
       u.rate = 0.9;
       speechSynthesis.speak(u);
@@ -409,20 +317,20 @@
     const cellH = (h - gap * (rows - 1)) / rows;
     const cell = Math.min(cellW, cellH);
     grid.style.setProperty("--cols", cols);
-    grid.style.setProperty("--cell-font", Math.max(14, Math.floor(cell * 0.5)) + "px");
+    // Numbers can have up to 3 digits (100), so use a smaller fraction than letters.
+    const factor = range === 100 ? 0.42 : 0.5;
+    grid.style.setProperty("--cell-font", Math.max(14, Math.floor(cell * factor)) + "px");
   }
 
   function render() {
-    const letters = getBaseLetters();
     grid.innerHTML = "";
-    for (const base of letters) {
-      const display = toCase(base, letterCase);
+    for (let n = 1; n <= range; n++) {
       const btn = document.createElement("button");
-      btn.className = "letter";
-      btn.textContent = display;
-      btn.setAttribute("aria-label", display);
+      btn.className = "number";
+      btn.textContent = String(n);
+      btn.setAttribute("aria-label", String(n));
       btn.addEventListener("click", () => {
-        speak(display);
+        speak(n);
         btn.classList.add("playing");
         setTimeout(() => btn.classList.remove("playing"), 220);
       });
@@ -466,35 +374,27 @@
     const info = langInfo();
     langFlagEl.textContent = info.flag;
     langNameEl.textContent = info.name;
-    accentToggle.classList.toggle("hidden", lang !== "cs");
     titleEl.textContent = TITLES[lang] || TITLES.en;
-    accentLabel.textContent = ACCENT_LABELS[lang] || ACCENT_LABELS.en;
     document.documentElement.lang = lang;
     refreshLangMenuActive();
-    try { localStorage.setItem("alphabet.lang", lang); } catch (_) {}
-    render();
+    try { localStorage.setItem("numbers.lang", lang); } catch (_) {}
   }
 
-  function setAccents(val) {
-    accents = val;
-    accentInput.checked = val;
-    try { localStorage.setItem("alphabet.accents", val ? "1" : "0"); } catch (_) {}
-    render();
-  }
-
-  function setCase(mode) {
-    letterCase = mode;
-    caseButtons.forEach(b => {
-      const on = b.dataset.case === mode;
+  function setRange(newRange) {
+    range = newRange;
+    rangeButtons.forEach(b => {
+      const on = parseInt(b.dataset.range, 10) === range;
       b.classList.toggle("active", on);
       b.setAttribute("aria-pressed", on ? "true" : "false");
     });
-    try { localStorage.setItem("alphabet.case", mode); } catch (_) {}
+    try { localStorage.setItem("numbers.range", String(range)); } catch (_) {}
     render();
   }
 
-  caseButtons.forEach(b => b.addEventListener("click", () => setCase(b.dataset.case)));
-  accentInput.addEventListener("change", () => setAccents(accentInput.checked));
+  rangeButtons.forEach(b => b.addEventListener("click", () => {
+    const r = parseInt(b.dataset.range, 10);
+    if (VALID_RANGES.includes(r)) setRange(r);
+  }));
   langTrigger.addEventListener("click", (e) => {
     e.stopPropagation();
     if (langMenu.classList.contains("open")) closeLangMenu();
@@ -510,9 +410,8 @@
   if ("ResizeObserver" in window) new ResizeObserver(layout).observe(grid);
 
   buildLangMenu();
-  setCase(letterCase);
   setLang(lang);
-  setAccents(accents);
+  setRange(range);
 </script>
 </body>
 </html>
