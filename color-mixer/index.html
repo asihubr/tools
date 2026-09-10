@@ -15,8 +15,8 @@
     --shadow: 0 10px 30px rgba(43, 33, 64, 0.18);
     --shadow-sm: 0 4px 14px rgba(43, 33, 64, 0.14);
   }
-  /* touch-action: manipulation disables double-tap zoom on mobile; pinch-zoom still works */
-  * { box-sizing: border-box; touch-action: manipulation; }
+  /* pan-x pan-y allows scrolling but no double-tap zoom and no pinch-zoom */
+  * { box-sizing: border-box; touch-action: pan-x pan-y; }
   html, body {
     margin: 0; padding: 0;
     font-family: "Fredoka", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -867,13 +867,15 @@
 })();
 </script>
 <script>
-  // iOS/WebKit ignores user-scalable=no and can still double-tap-zoom, so block
-  // it by hand: swallow the second tap of a quick double-tap and re-send the
-  // click that preventDefault would have cancelled.
+  // iOS/WebKit ignores user-scalable=no, so page zoom is blocked by hand here:
+  // double-tap (swallow the second tap, then re-send the click preventDefault
+  // would have cancelled) and pinch (cancel multi-touch moves plus Safari's own
+  // gesture events, which neither touch-action nor the viewport meta reaches).
   (function () {
     var DOUBLE_TAP_MS = 350
     var NATIVE = 'input, select, textarea, label, [contenteditable]'
     var lastTap = 0
+
     document.addEventListener('touchend', function (e) {
       var now = Date.now()
       var isSecondTap = now - lastTap < DOUBLE_TAP_MS
@@ -884,6 +886,15 @@
       e.preventDefault()
       target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }))
     }, { passive: false })
+
+    document.addEventListener('touchmove', function (e) {
+      if (e.touches.length > 1) e.preventDefault()
+    }, { passive: false })
+
+    var stopGesture = function (e) { e.preventDefault() }
+    document.addEventListener('gesturestart', stopGesture, { passive: false })
+    document.addEventListener('gesturechange', stopGesture, { passive: false })
+    document.addEventListener('gestureend', stopGesture, { passive: false })
   })()
 </script>
 </body>
