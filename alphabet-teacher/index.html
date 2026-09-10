@@ -154,27 +154,26 @@
   .lang-trigger {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
     background: white;
     border: 0;
-    border-radius: 999px;
-    padding: 6px 12px 6px 10px;
+    border-radius: 50%;
+    padding: 0;
     box-shadow: var(--shadow-sm);
     cursor: pointer;
     font: inherit;
-    font-weight: 600;
     color: var(--ink);
-    font-size: 13px;
     line-height: 1;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
+  .lang-trigger:hover { transform: scale(1.06); }
+  .lang-trigger:active { transform: scale(0.95); }
+  .lang-trigger:focus-visible { outline: 3px solid #ffb86b; outline-offset: 2px; }
   .lang-trigger .flag {
-    font-size: 18px;
+    font-size: 22px;
     line-height: 1;
-  }
-  .lang-trigger .caret {
-    font-size: 10px;
-    opacity: 0.6;
-    margin-left: 2px;
   }
   .lang-menu {
     position: absolute;
@@ -257,6 +256,8 @@
     header { padding: 10px 54px; }
     .home-link { top: 8px; left: 8px; width: 38px; height: 38px; font-size: 19px; }
     .lang-wrap { top: 8px; right: 8px; }
+    .lang-trigger { width: 38px; height: 38px; }
+    .lang-trigger .flag { font-size: 19px; }
   }
 </style>
 </head>
@@ -275,10 +276,8 @@
       </label>
     </div>
     <div class="lang-wrap">
-      <button class="lang-trigger" id="langTrigger" aria-haspopup="listbox" aria-expanded="false">
+      <button class="lang-trigger" id="langTrigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Language">
         <span class="flag" id="langFlag">🇬🇧</span>
-        <span class="lang-name" id="langName">English</span>
-        <span class="caret">▼</span>
       </button>
       <ul class="lang-menu" id="langMenu" role="listbox"></ul>
     </div>
@@ -338,7 +337,6 @@
   const langTrigger = document.getElementById("langTrigger");
   const langMenu = document.getElementById("langMenu");
   const langFlagEl = document.getElementById("langFlag");
-  const langNameEl = document.getElementById("langName");
 
   let lang = "en";
   let accents = false;
@@ -465,7 +463,7 @@
     lang = newLang;
     const info = langInfo();
     langFlagEl.textContent = info.flag;
-    langNameEl.textContent = info.name;
+    langTrigger.setAttribute("title", info.name);
     accentToggle.classList.toggle("hidden", lang !== "cs");
     titleEl.textContent = TITLES[lang] || TITLES.en;
     accentLabel.textContent = ACCENT_LABELS[lang] || ACCENT_LABELS.en;
