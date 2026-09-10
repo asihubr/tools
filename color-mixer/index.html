@@ -284,6 +284,65 @@
   }
   .drop svg { width: 100%; height: 100%; }
 
+  /* Win state — the aquarium itself announces the match */
+  .bowl.won {
+    outline: 4px solid #6ddc8e;
+    outline-offset: 3px;
+    animation: win-ring 1.1s ease-in-out infinite;
+  }
+  @keyframes win-ring {
+    0%, 100% { outline-color: #6ddc8e; outline-offset: 3px; }
+    50%      { outline-color: #ffd166; outline-offset: 7px; }
+  }
+  .win-badge {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 3;
+    padding: 9px 15px;
+    border-radius: 999px;
+    background: #2fbf71;
+    color: #ffffff;
+    border: 3px solid rgba(255, 255, 255, 0.92);
+    font-size: clamp(15px, 4.6vw, 21px);
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 6px 18px rgba(16, 51, 29, 0.35);
+    pointer-events: none;
+    animation: win-pop 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+  }
+  @keyframes win-pop {
+    0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  }
+  .win-badge:not([hidden]) { transform: translate(-50%, -50%); }
+  .target-swatch { position: relative; }
+  .target-swatch.won::after {
+    content: "✓";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #6ddc8e;
+    color: #10331d;
+    font-size: 19px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .match-fill.won { background: #6ddc8e; }
+  .match-text.won { opacity: 1; font-weight: 700; color: #1f7a45; }
+  #newTargetBtn.nudge { animation: nudge 1.4s ease-in-out infinite; }
+  @keyframes nudge {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+  }
+
   /* Confetti for win */
   .confetti {
     position: fixed;
@@ -477,6 +536,7 @@
             <circle cx="18" cy="13" r="2.3" fill="#fff"/>
             <circle cx="18" cy="13" r="1.1" fill="#1c1530"/>
           </svg>
+          <div class="win-badge" id="winBadge" role="status" aria-live="polite" hidden></div>
         </div>
         <div class="bowl-base"></div>
         <div>
@@ -522,6 +582,7 @@
       matchTitle: "🎯 Match this color",
       matchPct: (n) => n + "% match",
       perfect: "✨ Perfect match! ✨",
+      won: "🎉 You made it!",
       reset: "🧽 Wash bowl",
       newTarget: "🎲 New target",
       footer: "Made for tiny artists. Mix red + yellow, yellow + blue, or red + blue and see the magic ✨",
@@ -555,6 +616,7 @@
       matchTitle: "🎯 Najdi tuto barvu",
       matchPct: (n) => n + " % shoda",
       perfect: "✨ Přesná trefa! ✨",
+      won: "🎉 Povedlo se!",
       reset: "🧽 Vypláchnout",
       newTarget: "🎲 Nový cíl",
       footer: "Pro malé umělce. Smíchej červenou + žlutou, žlutou + modrou nebo červenou + modrou a uvidíš kouzlo ✨",
@@ -691,6 +753,8 @@
   const matchFill = document.getElementById("matchFill");
   const matchText = document.getElementById("matchText");
   const confettiBox = document.getElementById("confetti");
+  const winBadge = document.getElementById("winBadge");
+  const newTargetBtn = document.getElementById("newTargetBtn");
 
   function pickRandomTarget(avoid) {
     let t;
@@ -700,9 +764,22 @@
     return t;
   }
 
+  // Win feedback lives on the aquarium, not just in the side panel, so it is
+  // impossible to miss: glowing ring, badge in the water, ✓ on the target.
+  function setWon(flag) {
+    state.won = flag
+    bowl.classList.toggle("won", flag)
+    matchFill.classList.toggle("won", flag)
+    matchText.classList.toggle("won", flag)
+    targetSwatch.classList.toggle("won", flag)
+    newTargetBtn.classList.toggle("nudge", flag)
+    winBadge.hidden = !flag
+    if (flag) winBadge.textContent = tr().won
+  }
+
   function setTarget(t) {
     state.target = t;
-    state.won = false;
+    setWon(false);
     const rgb = targetRGB(t);
     targetSwatch.style.background = `rgb(${rgb.join(",")})`;
     targetName.textContent = tr().targets[t.key];
@@ -727,8 +804,11 @@
     matchText.textContent = tr().matchPct(display);
     const empty = state.red + state.yellow + state.blue === 0;
     if (!empty && dist < 18 && !state.won) {
-      state.won = true;
+      setWon(true);
       celebrate();
+    }
+    if (state.won) {
+      matchFill.style.width = "100%";
       matchText.textContent = tr().perfect;
     }
   }
@@ -797,7 +877,8 @@
   }
 
   function reset() {
-    state.red = 0; state.yellow = 0; state.blue = 0; state.won = false;
+    state.red = 0; state.yellow = 0; state.blue = 0;
+    setWon(false);
     updateBowl();
   }
 
@@ -813,7 +894,7 @@
   });
 
   document.getElementById("resetBtn").addEventListener("click", reset);
-  document.getElementById("newTargetBtn").addEventListener("click", () => {
+  newTargetBtn.addEventListener("click", () => {
     setTarget(pickRandomTarget(state.target));
     reset();
   });
@@ -843,7 +924,8 @@
     });
     document.getElementById("matchTitle").textContent = t.matchTitle;
     document.getElementById("resetBtn").textContent = t.reset;
-    document.getElementById("newTargetBtn").textContent = t.newTarget;
+    newTargetBtn.textContent = t.newTarget;
+    if (state.won) winBadge.textContent = t.won;
     document.getElementById("footer").textContent = t.footer;
 
     // Re-render dynamic strings
