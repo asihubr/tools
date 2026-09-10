@@ -515,5 +515,25 @@
   setLang(lang);
   setAccents(accents);
 </script>
+<script>
+  // iOS/WebKit ignores user-scalable=no and can still double-tap-zoom, so block
+  // it by hand: swallow the second tap of a quick double-tap and re-send the
+  // click that preventDefault would have cancelled.
+  (function () {
+    var DOUBLE_TAP_MS = 350
+    var NATIVE = 'input, select, textarea, label, [contenteditable]'
+    var lastTap = 0
+    document.addEventListener('touchend', function (e) {
+      var now = Date.now()
+      var isSecondTap = now - lastTap < DOUBLE_TAP_MS
+      lastTap = now
+      if (!isSecondTap || e.touches.length > 0) return
+      var target = e.target
+      if (target.closest && target.closest(NATIVE)) return
+      e.preventDefault()
+      target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }))
+    }, { passive: false })
+  })()
+</script>
 </body>
 </html>
