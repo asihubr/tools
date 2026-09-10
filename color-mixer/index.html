@@ -594,12 +594,6 @@
         Purple: "Purple", Magenta: "Magenta", Brown: "Brown", Tan: "Tan",
         Beige: "Beige", Gray: "Gray", Black: "Black", White: "White"
       },
-      targets: {
-        Orange: "Orange", Green: "Green", Purple: "Purple",
-        "Red-orange": "Red-orange", "Golden yellow": "Golden yellow",
-        Lime: "Lime", Teal: "Teal", Magenta: "Magenta",
-        Indigo: "Indigo", Brown: "Brown"
-      }
     },
     cs: {
       titlePop: "Mixér",
@@ -628,12 +622,6 @@
         Purple: "Fialová", Magenta: "Purpurová", Brown: "Hnědá", Tan: "Pískově hnědá",
         Beige: "Béžová", Gray: "Šedá", Black: "Černá", White: "Bílá"
       },
-      targets: {
-        Orange: "Oranžová", Green: "Zelená", Purple: "Fialová",
-        "Red-orange": "Červenooranžová", "Golden yellow": "Sytě žlutá",
-        Lime: "Limetková", Teal: "Modrozelená", Magenta: "Purpurová",
-        Indigo: "Indigo", Brown: "Hnědá"
-      }
     }
   };
 
@@ -722,19 +710,20 @@
     return tr().palette[paletteKeyForRGB(rgb)];
   }
 
-  // Targets the kid can try to reach. Each is a key + the drop recipe to make it.
-  // The display name comes from translations[lang].targets[key].
+  // Targets the kid can try to reach. Each key is a PALETTE name, so the target
+  // and the bowl are named by the same lookup and can never disagree on a win.
+  // Every recipe below resolves to a different palette entry.
   const TARGETS = [
-    { key: "Orange",        recipe: { red: 1, yellow: 1, blue: 0 } },
-    { key: "Green",         recipe: { red: 0, yellow: 1, blue: 1 } },
-    { key: "Purple",        recipe: { red: 1, yellow: 0, blue: 1 } },
-    { key: "Red-orange",    recipe: { red: 2, yellow: 1, blue: 0 } },
-    { key: "Golden yellow", recipe: { red: 1, yellow: 2, blue: 0 } },
-    { key: "Lime",          recipe: { red: 0, yellow: 2, blue: 1 } },
-    { key: "Teal",          recipe: { red: 0, yellow: 1, blue: 2 } },
-    { key: "Magenta",       recipe: { red: 2, yellow: 0, blue: 1 } },
-    { key: "Indigo",        recipe: { red: 1, yellow: 0, blue: 2 } },
-    { key: "Brown",         recipe: { red: 1, yellow: 1, blue: 1 } }
+    { key: "Orange",  recipe: { red: 1, yellow: 1, blue: 0 } },
+    { key: "Green",   recipe: { red: 0, yellow: 1, blue: 1 } },
+    { key: "Purple",  recipe: { red: 1, yellow: 0, blue: 1 } },
+    { key: "Gold",    recipe: { red: 1, yellow: 2, blue: 0 } },
+    { key: "Lime",    recipe: { red: 0, yellow: 2, blue: 1 } },
+    { key: "Teal",    recipe: { red: 0, yellow: 1, blue: 2 } },
+    { key: "Crimson", recipe: { red: 2, yellow: 0, blue: 1 } },
+    { key: "Olive",   recipe: { red: 1, yellow: 2, blue: 1 } },
+    { key: "Indigo",  recipe: { red: 1, yellow: 1, blue: 2 } },
+    { key: "Brown",   recipe: { red: 1, yellow: 1, blue: 1 } }
   ];
 
   function targetRGB(t) {
@@ -774,7 +763,10 @@
     targetSwatch.classList.toggle("won", flag)
     newTargetBtn.classList.toggle("nudge", flag)
     winBadge.hidden = !flag
-    if (flag) winBadge.textContent = tr().won
+    if (flag) {
+      winBadge.textContent = tr().won
+      colorName.textContent = targetName.textContent
+    }
   }
 
   function setTarget(t) {
@@ -782,7 +774,7 @@
     setWon(false);
     const rgb = targetRGB(t);
     targetSwatch.style.background = `rgb(${rgb.join(",")})`;
-    targetName.textContent = tr().targets[t.key];
+    targetName.textContent = tr().palette[t.key];
     updateMatch();
   }
 
@@ -930,7 +922,7 @@
 
     // Re-render dynamic strings
     if (state.target) {
-      document.getElementById("targetName").textContent = t.targets[state.target.key];
+      document.getElementById("targetName").textContent = t.palette[state.target.key];
     }
     updateBowl();
 
