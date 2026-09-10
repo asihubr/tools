@@ -128,28 +128,65 @@
 
   <footer>More tools coming soon.</footer>
 <script>
-  // iOS/WebKit ignores user-scalable=no, so page zoom is blocked by hand here:
-  // double-tap (swallow the second tap, then re-send the click preventDefault
-  // would have cancelled) and pinch (cancel multi-touch moves plus Safari's own
-  // gesture events, which neither touch-action nor the viewport meta reaches).
+  // iOS/WebKit ignores user-scalable=no, so page zoom is blocked by hand here.
+  // The whole gesture is tracked, not just its last touchend: a pinch ends with
+  // two lifts in quick succession, which would otherwise read as a double-tap
+  // and inject a phantom click on whatever was under the finger.
   (function () {
     var DOUBLE_TAP_MS = 350
+    var MOVE_TOLERANCE = 10
     var NATIVE = 'input, select, textarea, label, [contenteditable]'
     var lastTap = 0
+    var multiTouch = false
+    var moved = false
+    var startX = 0
+    var startY = 0
+
+    document.addEventListener('touchstart', function (e) {
+      if (e.touches.length > 1) {
+        multiTouch = true
+        return
+      }
+      multiTouch = false
+      moved = false
+      startX = e.touches[0].clientX
+      startY = e.touches[0].clientY
+    }, { passive: true })
+
+    document.addEventListener('touchmove', function (e) {
+      if (e.touches.length > 1) {
+        multiTouch = true
+        e.preventDefault()
+        return
+      }
+      var touch = e.touches[0]
+      if (Math.abs(touch.clientX - startX) > MOVE_TOLERANCE || Math.abs(touch.clientY - startY) > MOVE_TOLERANCE) moved = true
+    }, { passive: false })
 
     document.addEventListener('touchend', function (e) {
+      // A pinch: swallow every lift so no compatibility click reaches the page
+      if (multiTouch) {
+        e.preventDefault()
+        if (e.touches.length === 0) {
+          multiTouch = false
+          lastTap = 0
+        }
+        return
+      }
+      if (e.touches.length > 0) return
+      // A drag, not a tap
+      if (moved) {
+        lastTap = 0
+        return
+      }
       var now = Date.now()
       var isSecondTap = now - lastTap < DOUBLE_TAP_MS
       lastTap = now
-      if (!isSecondTap || e.touches.length > 0) return
+      if (!isSecondTap) return
       var target = e.target
       if (target.closest && target.closest(NATIVE)) return
       e.preventDefault()
       target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }))
-    }, { passive: false })
-
-    document.addEventListener('touchmove', function (e) {
-      if (e.touches.length > 1) e.preventDefault()
     }, { passive: false })
 
     var stopGesture = function (e) { e.preventDefault() }
